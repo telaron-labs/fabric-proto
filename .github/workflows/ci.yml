@@ -19,9 +19,9 @@ permissions:
 
 env:
   GO_VERSION: "1.26"
-  WIF_PROVIDER: "projects/110006208208/locations/global/workloadIdentityPools/telaron-gha-pool/providers/telaron-gha-provider"
-  CI_SA_EMAIL: "telaron-ci-sa@telaron-seed.iam.gserviceaccount.com"
-  DEPLOY_SA_EMAIL: "telaron-deploy-sa@telaron-seed.iam.gserviceaccount.com"
+  # WIF provider + CI/deploy SA identities are non-secret but recon-sensitive;
+  # this repo is public, so they live in repo secrets (masked in the public run
+  # logs too) rather than in-tree. Consumed at job scope where secrets resolve.
 
 jobs:
   secret-scan:
@@ -102,6 +102,9 @@ jobs:
     env:
       TELARON_FABRIC_GHA_APP_ID: ${{ vars.TELARON_FABRIC_GHA_APP_ID }}
       TELARON_FABRIC_GHA_INSTALLATION_ID: ${{ vars.TELARON_FABRIC_GHA_INSTALLATION_ID }}
+      WIF_PROVIDER: ${{ secrets.WIF_PROVIDER }}
+      CI_SA_EMAIL: ${{ secrets.CI_SA_EMAIL }}
+      DEPLOY_SA_EMAIL: ${{ secrets.DEPLOY_SA_EMAIL }}
     steps:
       - name: Aggregate job results
         env:
