@@ -57,8 +57,11 @@ jobs:
         with:
           setup_only: true
       # No baseline on main yet (bootstrap PR) -> nothing to break against.
+      # buf's #branch= resolves a LOCAL ref, which a PR checkout lacks (only
+      # origin/<base> exists), so materialise the base as a local branch first.
       - run: |
           if git show "origin/${{ github.base_ref }}:buf.yaml" >/dev/null 2>&1; then
+            git fetch --no-tags --force origin "refs/heads/${{ github.base_ref }}:refs/heads/${{ github.base_ref }}"
             buf breaking --against ".git#branch=${{ github.base_ref }}"
           else
             echo "No buf module on base branch yet — skipping."
