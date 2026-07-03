@@ -121,7 +121,10 @@ jobs:
           echo "All required jobs succeeded or were intentionally skipped."
 
       # On green CI: promote draft -> ready, arm auto-merge.
-      - uses: telaron-labs/.github/actions/ci-finalise@v1
+      # Vendored locally: public repos can't resolve actions from the private
+      # telaron-labs/.github repo, so the shared action is carried in-tree.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/ci-finalise
         with:
           merge-method: squash
           wif-provider: ${{ env.WIF_PROVIDER }}
