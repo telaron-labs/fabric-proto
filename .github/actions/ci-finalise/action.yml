@@ -1,0 +1,177 @@
+# Vendored from telaron-labs/.github actions/ci-finalise@v1 (private repo).
+# Public repos cannot resolve actions from private repos, so this public
+# repo carries its own copy. Keep in sync with the upstream action.
+
+# SDLC-F end bookend. On green ci-outcome: gate on mergeable state, mint the
+# telaron-labs-agent App token via WIF, promote the draft PR, arm auto-merge.
+
+name: ci-finalise
+description: >-
+  Gate on mergeable state, mint an App token via WIF, flip the draft PR to
+  ready, and arm auto-merge.
+
+inputs:
+  merge-method:
+    description: "Auto-merge method: squash | merge | rebase."
+    required: false
+    default: squash
+  disable-auto-merge:
+    description: "Promote to ready but skip arming auto-merge."
+    required: false
+    default: "false"
+  wif-provider:
+    description: "Workload Identity Federation provider resource path."
+    required: true
+  ci-sa-email:
+    description: "CI service account email (WIF-authenticated identity)."
+    required: true
+  deploy-sa-email:
+    description: "Deploy SA the CI SA impersonates to read the App private key."
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate merge-method input
+      shell: bash
+      env:
+        MERGE_METHOD: ${{ inputs.merge-method }}
+      run: |
+        set -euo pipefail
+        case "$MERGE_METHOD" in
+          squash|merge|rebase) ;;
+          *) echo "::error::merge-method must be squash, merge or rebase (got '$MERGE_METHOD')"; exit 1 ;;
+        esac
+
+    # Skip only on 'dirty' (real conflicts); 'blocked' is normal for a draft.
+    - name: Check PR mergeable state
+      id: mergeable-check
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused')
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        state=unknown
+        for i in 1 2 3 4 5; do
+          state=$(curl -sf \
+            -H "Authorization: bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/pulls/${PR_NUMBER}" \
+            | jq -r .mergeable_state)
+          [ "$state" != "unknown" ] && break
+          sleep 5
+        done
+        echo "mergeable_state=$state"
+        if [ "$state" = "dirty" ]; then
+          echo "::warning::mergeable_state=dirty — skipping auto-promote"
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    # Composite actions can't read vars.*; the caller exports the App IDs as env.
+    - name: Verify org variables present
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused') &&
+        steps.mergeable-check.outputs.skip != 'true'
+      shell: bash
+      env:
+        APP_ID: ${{ env.TELARON_FABRIC_GHA_APP_ID }}
+        INSTALLATION_ID: ${{ env.TELARON_FABRIC_GHA_INSTALLATION_ID }}
+      run: |
+        set -euo pipefail
+        if [ -z "${APP_ID:-}" ] || [ -z "${INSTALLATION_ID:-}" ]; then
+          echo "::error::Caller must export env TELARON_FABRIC_GHA_APP_ID and TELARON_FABRIC_GHA_INSTALLATION_ID from the org variables."
+          exit 1
+        fi
+
+    - name: Authenticate to GCP (WIF)
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused') &&
+        steps.mergeable-check.outputs.skip != 'true'
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+      with:
+        workload_identity_provider: ${{ inputs.wif-provider }}
+        service_account: ${{ inputs.ci-sa-email }}
+
+    - name: Set up gcloud
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused') &&
+        steps.mergeable-check.outputs.skip != 'true'
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+    - name: Mint telaron-labs-agent App token
+      id: bot-token
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused') &&
+        steps.mergeable-check.outputs.skip != 'true'
+      shell: bash
+      env:
+        GOOGLE_IMPERSONATE_SERVICE_ACCOUNT: ${{ inputs.deploy-sa-email }}
+        APP_ID: ${{ env.TELARON_FABRIC_GHA_APP_ID }}
+        INSTALLATION_ID: ${{ env.TELARON_FABRIC_GHA_INSTALLATION_ID }}
+      run: |
+        set -euo pipefail
+        pem=$(gcloud secrets versions access latest \
+          --secret=github-app-private-key \
+          --project=telaron-seed)
+        header=$(printf '%s' '{"alg":"RS256","typ":"JWT"}' | base64 -w0 | tr -- '+/' '-_' | tr -d '=')
+        now=$(date +%s)
+        payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' "$((now - 60))" "$((now + 540))" "$APP_ID" | base64 -w0 | tr -- '+/' '-_' | tr -d '=')
+        sig=$(printf '%s.%s' "$header" "$payload" | openssl dgst -sha256 -sign <(printf '%s' "$pem") -binary | base64 -w0 | tr -- '+/' '-_' | tr -d '=')
+        jwt="${header}.${payload}.${sig}"
+        token=$(curl -sf -X POST \
+          -H "Authorization: Bearer ${jwt}" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/app/installations/${INSTALLATION_ID}/access_tokens" | jq -r .token)
+        if [ -z "$token" ] || [ "$token" = "null" ]; then
+          echo "::error::Failed to mint installation token"
+          exit 1
+        fi
+        echo "::add-mask::$token"
+        echo "token=$token" >> "$GITHUB_OUTPUT"
+
+    - name: Promote draft to ready + arm auto-merge
+      if: |
+        success() &&
+        github.event_name == 'pull_request' &&
+        !contains(github.event.pull_request.labels.*.name, 'no-auto-promote') &&
+        !contains(github.event.pull_request.labels.*.name, 'ci-paused') &&
+        steps.mergeable-check.outputs.skip != 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        MERGE_METHOD: ${{ inputs.merge-method }}
+        DISABLE_AUTO_MERGE: ${{ inputs.disable-auto-merge }}
+        NO_AUTO_MERGE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'no-auto-merge') }}
+      run: |
+        set -euo pipefail
+        gh pr ready "${PR_NUMBER}" --repo "${REPO}"
+        if [ "$DISABLE_AUTO_MERGE" = "true" ] || [ "$NO_AUTO_MERGE_LABEL" = "true" ]; then
+          echo "Auto-merge arming skipped."
+          exit 0
+        fi
+        if ! gh pr merge "${PR_NUMBER}" --repo "${REPO}" "--${MERGE_METHOD}" --auto; then
+          echo "::warning::Could not arm auto-merge (already enabled, or branch-protection mismatch)."
+        fi

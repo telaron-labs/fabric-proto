@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package telaron.control.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// ControlService is the gateway-facing control-plane API (ctrl.telaron.io).
+// Transport is mTLS gRPC: Register bootstraps a device identity from a
+// one-time enrolment token; Connect is the long-lived bidirectional channel
+// carrying heartbeats and acks upstream, config and commands downstream.
+service ControlService {
+  // Register enrols a gateway: CSR in, signed device certificate out.
+  // Authenticated by enrolment token, not client cert (the gateway has no
+  // cert yet). All subsequent RPCs require the issued device certificate.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Connect is the persistent stream. The first gateway frame MUST be Hello;
+  // the control plane replies HelloAck with the current config revision so a
+  // reconnecting gateway can resume without a full re-push.
+  rpc Connect(stream ConnectRequest) returns (stream ConnectResponse);
+}
+
+message RegisterRequest {
+  // One-time enrolment credential minted by the platform API.
+  string enrolment_token = 1;
+  // PKCS#10 certificate signing request, PEM-encoded. Subject/SANs are
+  // validated and overridden server-side; only the public key is trusted.
+  bytes csr_pem = 2;
+  string name = 3;
+  string cluster_id = 4;
+  // Gateway software version (semver).
+  string version = 5;
+  map<string, string> labels = 6;
+}
+
+message RegisterResponse {
+  string gateway_id = 1;
+  // Signed device certificate, PEM-encoded.
+  bytes certificate_pem = 2;
+  // CA bundle for validating the control-plane server certificate.
+  bytes ca_bundle_pem = 3;
+  google.protobuf.Timestamp certificate_expires_at = 4;
+}
+
+// ConnectRequest is every gateway -> control-plane frame on the Connect stream.
+message ConnectRequest {
+  string gateway_id = 1;
+  oneof payload {
+    Hello hello = 2;
+    Heartbeat heartbeat = 3;
+    ConfigAck config_ack = 4;
+    CommandResult command_result = 5;
+  }
+}
+
+// ConnectResponse is every control-plane -> gateway frame on the Connect stream.
+message ConnectResponse {
+  oneof payload {
+    HelloAck hello_ack = 1;
+    ConfigPush config_push = 2;
+    Command command = 3;
+  }
+}
+
+message Hello {
+  // Highest config revision the gateway has applied; 0 means fresh state
+  // and requests a full config push.
+  int64 last_config_revision = 1;
+  string version = 2;
+}
+
+message HelloAck {
+  int64 current_config_revision = 1;
+  uint32 heartbeat_interval_seconds = 2;
+}
+
+message Heartbeat {
+  google.protobuf.Timestamp sent_at = 1;
+  HealthStatus health = 2;
+}
+
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// ConfigPush carries the desired fabric/policy/peer state for this gateway.
+message ConfigPush {
+  // Monotonic per-gateway revision; gateways apply in order and ack each.
+  int64 revision = 1;
+  // Canonical JSON config document; schema owned by the platform.
+  bytes config = 2;
+  // Hex-encoded SHA-256 of config, verified before apply.
+  string checksum_sha256 = 3;
+}
+
+message ConfigAck {
+  int64 revision = 1;
+  AckStatus status = 2;
+  // Populated when status is FAILED.
+  string error = 3;
+}
+
+message Command {
+  // Unique command id, echoed back in CommandResult.
+  string command_id = 1;
+  CommandType type = 2;
+  map<string, string> params = 3;
+}
+
+message CommandResult {
+  string command_id = 1;
+  AckStatus status = 2;
+  string detail = 3;
+}
+
+enum AckStatus {
+  ACK_STATUS_UNSPECIFIED = 0;
+  ACK_STATUS_APPLIED = 1;
+  ACK_STATUS_FAILED = 2;
+}
+
+enum CommandType {
+  COMMAND_TYPE_UNSPECIFIED = 0;
+  COMMAND_TYPE_SCALE = 1;
+  COMMAND_TYPE_DRAIN = 2;
+  COMMAND_TYPE_REKEY = 3;
+  COMMAND_TYPE_DECOMMISSION = 4;
+}
