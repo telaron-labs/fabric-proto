@@ -83,9 +83,19 @@ jobs:
         with:
           setup_only: true
       - name: Install protoc plugins
+        # PINNED, deliberately the opposite of the toolchain above. The Go
+        # toolchain floats because staleness is the risk there — a cached
+        # patch hides a fixed advisory. These generators produce output that
+        # is committed to the tree, so reproducibility is the requirement and
+        # freshness is the risk: at @latest this gate regenerates with
+        # whatever shipped most recently, compares it against a file stamped
+        # by whatever shipped when it was written, and fails on every plugin
+        # release regardless of whether any proto changed.
+        # Bumps arrive as ordinary dependency PRs carrying the regenerated
+        # output, which is the only way the two can move together.
         run: |
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
       - name: Regenerate and diff
         run: |
           rm -rf gen
