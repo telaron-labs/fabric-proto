@@ -22,6 +22,57 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type AddressScope int32
+
+const (
+	AddressScope_ADDRESS_SCOPE_UNSPECIFIED AddressScope = 0
+	AddressScope_ADDRESS_SCOPE_PRIVATE     AddressScope = 1
+	// Reachable from outside the VPC. On clouds with 1:1 NAT the appliance
+	// never sees this on an interface, only from the metadata server.
+	AddressScope_ADDRESS_SCOPE_PUBLIC AddressScope = 2
+)
+
+// Enum value maps for AddressScope.
+var (
+	AddressScope_name = map[int32]string{
+		0: "ADDRESS_SCOPE_UNSPECIFIED",
+		1: "ADDRESS_SCOPE_PRIVATE",
+		2: "ADDRESS_SCOPE_PUBLIC",
+	}
+	AddressScope_value = map[string]int32{
+		"ADDRESS_SCOPE_UNSPECIFIED": 0,
+		"ADDRESS_SCOPE_PRIVATE":     1,
+		"ADDRESS_SCOPE_PUBLIC":      2,
+	}
+)
+
+func (x AddressScope) Enum() *AddressScope {
+	p := new(AddressScope)
+	*p = x
+	return p
+}
+
+func (x AddressScope) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AddressScope) Descriptor() protoreflect.EnumDescriptor {
+	return file_telaron_control_v1_control_proto_enumTypes[0].Descriptor()
+}
+
+func (AddressScope) Type() protoreflect.EnumType {
+	return &file_telaron_control_v1_control_proto_enumTypes[0]
+}
+
+func (x AddressScope) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AddressScope.Descriptor instead.
+func (AddressScope) EnumDescriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{0}
+}
+
 type HealthStatus int32
 
 const (
@@ -58,11 +109,11 @@ func (x HealthStatus) String() string {
 }
 
 func (HealthStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_telaron_control_v1_control_proto_enumTypes[0].Descriptor()
+	return file_telaron_control_v1_control_proto_enumTypes[1].Descriptor()
 }
 
 func (HealthStatus) Type() protoreflect.EnumType {
-	return &file_telaron_control_v1_control_proto_enumTypes[0]
+	return &file_telaron_control_v1_control_proto_enumTypes[1]
 }
 
 func (x HealthStatus) Number() protoreflect.EnumNumber {
@@ -71,7 +122,7 @@ func (x HealthStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HealthStatus.Descriptor instead.
 func (HealthStatus) EnumDescriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{0}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{1}
 }
 
 type AckStatus int32
@@ -107,11 +158,11 @@ func (x AckStatus) String() string {
 }
 
 func (AckStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_telaron_control_v1_control_proto_enumTypes[1].Descriptor()
+	return file_telaron_control_v1_control_proto_enumTypes[2].Descriptor()
 }
 
 func (AckStatus) Type() protoreflect.EnumType {
-	return &file_telaron_control_v1_control_proto_enumTypes[1]
+	return &file_telaron_control_v1_control_proto_enumTypes[2]
 }
 
 func (x AckStatus) Number() protoreflect.EnumNumber {
@@ -120,7 +171,7 @@ func (x AckStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AckStatus.Descriptor instead.
 func (AckStatus) EnumDescriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{1}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{2}
 }
 
 type CommandType int32
@@ -162,11 +213,11 @@ func (x CommandType) String() string {
 }
 
 func (CommandType) Descriptor() protoreflect.EnumDescriptor {
-	return file_telaron_control_v1_control_proto_enumTypes[2].Descriptor()
+	return file_telaron_control_v1_control_proto_enumTypes[3].Descriptor()
 }
 
 func (CommandType) Type() protoreflect.EnumType {
-	return &file_telaron_control_v1_control_proto_enumTypes[2]
+	return &file_telaron_control_v1_control_proto_enumTypes[3]
 }
 
 func (x CommandType) Number() protoreflect.EnumNumber {
@@ -175,7 +226,7 @@ func (x CommandType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CommandType.Descriptor instead.
 func (CommandType) EnumDescriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{2}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{3}
 }
 
 type RegisterRequest struct {
@@ -564,8 +615,18 @@ type Hello struct {
 	// and requests a full config push.
 	LastConfigRevision int64  `protobuf:"varint,1,opt,name=last_config_revision,json=lastConfigRevision,proto3" json:"last_config_revision,omitempty"`
 	Version            string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Sent on every connect, so a rotated key or moved address is picked up on
+	// the next one. Attributed to the gateway named by the device-proof
+	// certificate, never by anything in this message.
+	Fabric *WireGuardIdentity `protobuf:"bytes,3,opt,name=fabric,proto3" json:"fabric,omitempty"`
+	// Intra-cluster flow-steering mesh: a separate key namespace. Unset until
+	// the appliance runs one.
+	Mesh *WireGuardIdentity `protobuf:"bytes,4,opt,name=mesh,proto3" json:"mesh,omitempty"`
+	// Addresses the appliance can observe. The platform picks the endpoint per
+	// peer relationship, since mesh peers dial private and fabric peers public.
+	Addresses     []*ObservedAddress `protobuf:"bytes,5,rep,name=addresses,proto3" json:"addresses,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Hello) Reset() {
@@ -612,6 +673,142 @@ func (x *Hello) GetVersion() string {
 	return ""
 }
 
+func (x *Hello) GetFabric() *WireGuardIdentity {
+	if x != nil {
+		return x.Fabric
+	}
+	return nil
+}
+
+func (x *Hello) GetMesh() *WireGuardIdentity {
+	if x != nil {
+		return x.Mesh
+	}
+	return nil
+}
+
+func (x *Hello) GetAddresses() []*ObservedAddress {
+	if x != nil {
+		return x.Addresses
+	}
+	return nil
+}
+
+type WireGuardIdentity struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Curve25519 public key, base64 as wg(8) prints it.
+	PublicKey string `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	// UDP port the appliance's interface is bound to.
+	ListenPort    uint32 `protobuf:"varint,2,opt,name=listen_port,json=listenPort,proto3" json:"listen_port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WireGuardIdentity) Reset() {
+	*x = WireGuardIdentity{}
+	mi := &file_telaron_control_v1_control_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WireGuardIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WireGuardIdentity) ProtoMessage() {}
+
+func (x *WireGuardIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_telaron_control_v1_control_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WireGuardIdentity.ProtoReflect.Descriptor instead.
+func (*WireGuardIdentity) Descriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WireGuardIdentity) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+func (x *WireGuardIdentity) GetListenPort() uint32 {
+	if x != nil {
+		return x.ListenPort
+	}
+	return 0
+}
+
+type ObservedAddress struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Ip    string                 `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
+	Scope AddressScope           `protobuf:"varint,2,opt,name=scope,proto3,enum=telaron.control.v1.AddressScope" json:"scope,omitempty"`
+	// Where the appliance learned it, e.g. "interface:eth0" or "metadata:gce".
+	Source        string `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ObservedAddress) Reset() {
+	*x = ObservedAddress{}
+	mi := &file_telaron_control_v1_control_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObservedAddress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObservedAddress) ProtoMessage() {}
+
+func (x *ObservedAddress) ProtoReflect() protoreflect.Message {
+	mi := &file_telaron_control_v1_control_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObservedAddress.ProtoReflect.Descriptor instead.
+func (*ObservedAddress) Descriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ObservedAddress) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *ObservedAddress) GetScope() AddressScope {
+	if x != nil {
+		return x.Scope
+	}
+	return AddressScope_ADDRESS_SCOPE_UNSPECIFIED
+}
+
+func (x *ObservedAddress) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
 type HelloAck struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	CurrentConfigRevision    int64                  `protobuf:"varint,1,opt,name=current_config_revision,json=currentConfigRevision,proto3" json:"current_config_revision,omitempty"`
@@ -622,7 +819,7 @@ type HelloAck struct {
 
 func (x *HelloAck) Reset() {
 	*x = HelloAck{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[5]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +831,7 @@ func (x *HelloAck) String() string {
 func (*HelloAck) ProtoMessage() {}
 
 func (x *HelloAck) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[5]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +844,7 @@ func (x *HelloAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelloAck.ProtoReflect.Descriptor instead.
 func (*HelloAck) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{5}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *HelloAck) GetCurrentConfigRevision() int64 {
@@ -674,7 +871,7 @@ type Heartbeat struct {
 
 func (x *Heartbeat) Reset() {
 	*x = Heartbeat{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[6]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -686,7 +883,7 @@ func (x *Heartbeat) String() string {
 func (*Heartbeat) ProtoMessage() {}
 
 func (x *Heartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[6]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -699,7 +896,7 @@ func (x *Heartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Heartbeat.ProtoReflect.Descriptor instead.
 func (*Heartbeat) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{6}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Heartbeat) GetSentAt() *timestamppb.Timestamp {
@@ -731,7 +928,7 @@ type ConfigPush struct {
 
 func (x *ConfigPush) Reset() {
 	*x = ConfigPush{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[7]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -743,7 +940,7 @@ func (x *ConfigPush) String() string {
 func (*ConfigPush) ProtoMessage() {}
 
 func (x *ConfigPush) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[7]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -756,7 +953,7 @@ func (x *ConfigPush) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigPush.ProtoReflect.Descriptor instead.
 func (*ConfigPush) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{7}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ConfigPush) GetRevision() int64 {
@@ -792,7 +989,7 @@ type ConfigAck struct {
 
 func (x *ConfigAck) Reset() {
 	*x = ConfigAck{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[8]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +1001,7 @@ func (x *ConfigAck) String() string {
 func (*ConfigAck) ProtoMessage() {}
 
 func (x *ConfigAck) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[8]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -817,7 +1014,7 @@ func (x *ConfigAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigAck.ProtoReflect.Descriptor instead.
 func (*ConfigAck) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{8}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ConfigAck) GetRevision() int64 {
@@ -853,7 +1050,7 @@ type Command struct {
 
 func (x *Command) Reset() {
 	*x = Command{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -865,7 +1062,7 @@ func (x *Command) String() string {
 func (*Command) ProtoMessage() {}
 
 func (x *Command) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -878,7 +1075,7 @@ func (x *Command) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Command.ProtoReflect.Descriptor instead.
 func (*Command) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{9}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Command) GetCommandId() string {
@@ -913,7 +1110,7 @@ type CommandResult struct {
 
 func (x *CommandResult) Reset() {
 	*x = CommandResult{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -925,7 +1122,7 @@ func (x *CommandResult) String() string {
 func (*CommandResult) ProtoMessage() {}
 
 func (x *CommandResult) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -938,7 +1135,7 @@ func (x *CommandResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandResult.ProtoReflect.Descriptor instead.
 func (*CommandResult) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{10}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CommandResult) GetCommandId() string {
@@ -998,10 +1195,22 @@ const file_telaron_control_v1_control_proto_rawDesc = "" +
 	"\vconfig_push\x18\x02 \x01(\v2\x1e.telaron.control.v1.ConfigPushH\x00R\n" +
 	"configPush\x127\n" +
 	"\acommand\x18\x03 \x01(\v2\x1b.telaron.control.v1.CommandH\x00R\acommandB\t\n" +
-	"\apayload\"S\n" +
+	"\apayload\"\x90\x02\n" +
 	"\x05Hello\x120\n" +
 	"\x14last_config_revision\x18\x01 \x01(\x03R\x12lastConfigRevision\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"\x80\x01\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12=\n" +
+	"\x06fabric\x18\x03 \x01(\v2%.telaron.control.v1.WireGuardIdentityR\x06fabric\x129\n" +
+	"\x04mesh\x18\x04 \x01(\v2%.telaron.control.v1.WireGuardIdentityR\x04mesh\x12A\n" +
+	"\taddresses\x18\x05 \x03(\v2#.telaron.control.v1.ObservedAddressR\taddresses\"S\n" +
+	"\x11WireGuardIdentity\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x01 \x01(\tR\tpublicKey\x12\x1f\n" +
+	"\vlisten_port\x18\x02 \x01(\rR\n" +
+	"listenPort\"q\n" +
+	"\x0fObservedAddress\x12\x0e\n" +
+	"\x02ip\x18\x01 \x01(\tR\x02ip\x126\n" +
+	"\x05scope\x18\x02 \x01(\x0e2 .telaron.control.v1.AddressScopeR\x05scope\x12\x16\n" +
+	"\x06source\x18\x03 \x01(\tR\x06source\"\x80\x01\n" +
 	"\bHelloAck\x126\n" +
 	"\x17current_config_revision\x18\x01 \x01(\x03R\x15currentConfigRevision\x12<\n" +
 	"\x1aheartbeat_interval_seconds\x18\x02 \x01(\rR\x18heartbeatIntervalSeconds\"z\n" +
@@ -1029,7 +1238,11 @@ const file_telaron_control_v1_control_proto_rawDesc = "" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x125\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1d.telaron.control.v1.AckStatusR\x06status\x12\x16\n" +
-	"\x06detail\x18\x03 \x01(\tR\x06detail*\x81\x01\n" +
+	"\x06detail\x18\x03 \x01(\tR\x06detail*b\n" +
+	"\fAddressScope\x12\x1d\n" +
+	"\x19ADDRESS_SCOPE_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15ADDRESS_SCOPE_PRIVATE\x10\x01\x12\x18\n" +
+	"\x14ADDRESS_SCOPE_PUBLIC\x10\x02*\x81\x01\n" +
 	"\fHealthStatus\x12\x1d\n" +
 	"\x19HEALTH_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15HEALTH_STATUS_HEALTHY\x10\x01\x12\x1a\n" +
@@ -1062,52 +1275,59 @@ func file_telaron_control_v1_control_proto_rawDescGZIP() []byte {
 	return file_telaron_control_v1_control_proto_rawDescData
 }
 
-var file_telaron_control_v1_control_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_telaron_control_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_telaron_control_v1_control_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_telaron_control_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_telaron_control_v1_control_proto_goTypes = []any{
-	(HealthStatus)(0),             // 0: telaron.control.v1.HealthStatus
-	(AckStatus)(0),                // 1: telaron.control.v1.AckStatus
-	(CommandType)(0),              // 2: telaron.control.v1.CommandType
-	(*RegisterRequest)(nil),       // 3: telaron.control.v1.RegisterRequest
-	(*RegisterResponse)(nil),      // 4: telaron.control.v1.RegisterResponse
-	(*ConnectRequest)(nil),        // 5: telaron.control.v1.ConnectRequest
-	(*ConnectResponse)(nil),       // 6: telaron.control.v1.ConnectResponse
-	(*Hello)(nil),                 // 7: telaron.control.v1.Hello
-	(*HelloAck)(nil),              // 8: telaron.control.v1.HelloAck
-	(*Heartbeat)(nil),             // 9: telaron.control.v1.Heartbeat
-	(*ConfigPush)(nil),            // 10: telaron.control.v1.ConfigPush
-	(*ConfigAck)(nil),             // 11: telaron.control.v1.ConfigAck
-	(*Command)(nil),               // 12: telaron.control.v1.Command
-	(*CommandResult)(nil),         // 13: telaron.control.v1.CommandResult
-	nil,                           // 14: telaron.control.v1.RegisterRequest.LabelsEntry
-	nil,                           // 15: telaron.control.v1.Command.ParamsEntry
-	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
+	(AddressScope)(0),             // 0: telaron.control.v1.AddressScope
+	(HealthStatus)(0),             // 1: telaron.control.v1.HealthStatus
+	(AckStatus)(0),                // 2: telaron.control.v1.AckStatus
+	(CommandType)(0),              // 3: telaron.control.v1.CommandType
+	(*RegisterRequest)(nil),       // 4: telaron.control.v1.RegisterRequest
+	(*RegisterResponse)(nil),      // 5: telaron.control.v1.RegisterResponse
+	(*ConnectRequest)(nil),        // 6: telaron.control.v1.ConnectRequest
+	(*ConnectResponse)(nil),       // 7: telaron.control.v1.ConnectResponse
+	(*Hello)(nil),                 // 8: telaron.control.v1.Hello
+	(*WireGuardIdentity)(nil),     // 9: telaron.control.v1.WireGuardIdentity
+	(*ObservedAddress)(nil),       // 10: telaron.control.v1.ObservedAddress
+	(*HelloAck)(nil),              // 11: telaron.control.v1.HelloAck
+	(*Heartbeat)(nil),             // 12: telaron.control.v1.Heartbeat
+	(*ConfigPush)(nil),            // 13: telaron.control.v1.ConfigPush
+	(*ConfigAck)(nil),             // 14: telaron.control.v1.ConfigAck
+	(*Command)(nil),               // 15: telaron.control.v1.Command
+	(*CommandResult)(nil),         // 16: telaron.control.v1.CommandResult
+	nil,                           // 17: telaron.control.v1.RegisterRequest.LabelsEntry
+	nil,                           // 18: telaron.control.v1.Command.ParamsEntry
+	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
 }
 var file_telaron_control_v1_control_proto_depIdxs = []int32{
-	14, // 0: telaron.control.v1.RegisterRequest.labels:type_name -> telaron.control.v1.RegisterRequest.LabelsEntry
-	16, // 1: telaron.control.v1.RegisterResponse.certificate_expires_at:type_name -> google.protobuf.Timestamp
-	7,  // 2: telaron.control.v1.ConnectRequest.hello:type_name -> telaron.control.v1.Hello
-	9,  // 3: telaron.control.v1.ConnectRequest.heartbeat:type_name -> telaron.control.v1.Heartbeat
-	11, // 4: telaron.control.v1.ConnectRequest.config_ack:type_name -> telaron.control.v1.ConfigAck
-	13, // 5: telaron.control.v1.ConnectRequest.command_result:type_name -> telaron.control.v1.CommandResult
-	8,  // 6: telaron.control.v1.ConnectResponse.hello_ack:type_name -> telaron.control.v1.HelloAck
-	10, // 7: telaron.control.v1.ConnectResponse.config_push:type_name -> telaron.control.v1.ConfigPush
-	12, // 8: telaron.control.v1.ConnectResponse.command:type_name -> telaron.control.v1.Command
-	16, // 9: telaron.control.v1.Heartbeat.sent_at:type_name -> google.protobuf.Timestamp
-	0,  // 10: telaron.control.v1.Heartbeat.health:type_name -> telaron.control.v1.HealthStatus
-	1,  // 11: telaron.control.v1.ConfigAck.status:type_name -> telaron.control.v1.AckStatus
-	2,  // 12: telaron.control.v1.Command.type:type_name -> telaron.control.v1.CommandType
-	15, // 13: telaron.control.v1.Command.params:type_name -> telaron.control.v1.Command.ParamsEntry
-	1,  // 14: telaron.control.v1.CommandResult.status:type_name -> telaron.control.v1.AckStatus
-	3,  // 15: telaron.control.v1.ControlService.Register:input_type -> telaron.control.v1.RegisterRequest
-	5,  // 16: telaron.control.v1.ControlService.Connect:input_type -> telaron.control.v1.ConnectRequest
-	4,  // 17: telaron.control.v1.ControlService.Register:output_type -> telaron.control.v1.RegisterResponse
-	6,  // 18: telaron.control.v1.ControlService.Connect:output_type -> telaron.control.v1.ConnectResponse
-	17, // [17:19] is the sub-list for method output_type
-	15, // [15:17] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	17, // 0: telaron.control.v1.RegisterRequest.labels:type_name -> telaron.control.v1.RegisterRequest.LabelsEntry
+	19, // 1: telaron.control.v1.RegisterResponse.certificate_expires_at:type_name -> google.protobuf.Timestamp
+	8,  // 2: telaron.control.v1.ConnectRequest.hello:type_name -> telaron.control.v1.Hello
+	12, // 3: telaron.control.v1.ConnectRequest.heartbeat:type_name -> telaron.control.v1.Heartbeat
+	14, // 4: telaron.control.v1.ConnectRequest.config_ack:type_name -> telaron.control.v1.ConfigAck
+	16, // 5: telaron.control.v1.ConnectRequest.command_result:type_name -> telaron.control.v1.CommandResult
+	11, // 6: telaron.control.v1.ConnectResponse.hello_ack:type_name -> telaron.control.v1.HelloAck
+	13, // 7: telaron.control.v1.ConnectResponse.config_push:type_name -> telaron.control.v1.ConfigPush
+	15, // 8: telaron.control.v1.ConnectResponse.command:type_name -> telaron.control.v1.Command
+	9,  // 9: telaron.control.v1.Hello.fabric:type_name -> telaron.control.v1.WireGuardIdentity
+	9,  // 10: telaron.control.v1.Hello.mesh:type_name -> telaron.control.v1.WireGuardIdentity
+	10, // 11: telaron.control.v1.Hello.addresses:type_name -> telaron.control.v1.ObservedAddress
+	0,  // 12: telaron.control.v1.ObservedAddress.scope:type_name -> telaron.control.v1.AddressScope
+	19, // 13: telaron.control.v1.Heartbeat.sent_at:type_name -> google.protobuf.Timestamp
+	1,  // 14: telaron.control.v1.Heartbeat.health:type_name -> telaron.control.v1.HealthStatus
+	2,  // 15: telaron.control.v1.ConfigAck.status:type_name -> telaron.control.v1.AckStatus
+	3,  // 16: telaron.control.v1.Command.type:type_name -> telaron.control.v1.CommandType
+	18, // 17: telaron.control.v1.Command.params:type_name -> telaron.control.v1.Command.ParamsEntry
+	2,  // 18: telaron.control.v1.CommandResult.status:type_name -> telaron.control.v1.AckStatus
+	4,  // 19: telaron.control.v1.ControlService.Register:input_type -> telaron.control.v1.RegisterRequest
+	6,  // 20: telaron.control.v1.ControlService.Connect:input_type -> telaron.control.v1.ConnectRequest
+	5,  // 21: telaron.control.v1.ControlService.Register:output_type -> telaron.control.v1.RegisterResponse
+	7,  // 22: telaron.control.v1.ControlService.Connect:output_type -> telaron.control.v1.ConnectResponse
+	21, // [21:23] is the sub-list for method output_type
+	19, // [19:21] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_telaron_control_v1_control_proto_init() }
@@ -1131,8 +1351,8 @@ func file_telaron_control_v1_control_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_telaron_control_v1_control_proto_rawDesc), len(file_telaron_control_v1_control_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   13,
+			NumEnums:      4,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
