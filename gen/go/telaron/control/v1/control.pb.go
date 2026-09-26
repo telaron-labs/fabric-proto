@@ -125,6 +125,190 @@ func (HealthStatus) EnumDescriptor() ([]byte, []int) {
 	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{1}
 }
 
+// RoutingDaemonState is liveness of the FRR daemons as a whole, independent
+// of any neighbour: peer states are only trustworthy when it is READY.
+type RoutingDaemonState int32
+
+const (
+	RoutingDaemonState_ROUTING_DAEMON_STATE_UNSPECIFIED RoutingDaemonState = 0
+	// The daemons answered a probe.
+	RoutingDaemonState_ROUTING_DAEMON_STATE_READY RoutingDaemonState = 1
+	// Not reachable yet; expected between boot and the first config apply.
+	RoutingDaemonState_ROUTING_DAEMON_STATE_STARTING RoutingDaemonState = 2
+	// Were up and no longer answer, or the last start attempt failed.
+	RoutingDaemonState_ROUTING_DAEMON_STATE_ERROR RoutingDaemonState = 3
+)
+
+// Enum value maps for RoutingDaemonState.
+var (
+	RoutingDaemonState_name = map[int32]string{
+		0: "ROUTING_DAEMON_STATE_UNSPECIFIED",
+		1: "ROUTING_DAEMON_STATE_READY",
+		2: "ROUTING_DAEMON_STATE_STARTING",
+		3: "ROUTING_DAEMON_STATE_ERROR",
+	}
+	RoutingDaemonState_value = map[string]int32{
+		"ROUTING_DAEMON_STATE_UNSPECIFIED": 0,
+		"ROUTING_DAEMON_STATE_READY":       1,
+		"ROUTING_DAEMON_STATE_STARTING":    2,
+		"ROUTING_DAEMON_STATE_ERROR":       3,
+	}
+)
+
+func (x RoutingDaemonState) Enum() *RoutingDaemonState {
+	p := new(RoutingDaemonState)
+	*p = x
+	return p
+}
+
+func (x RoutingDaemonState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RoutingDaemonState) Descriptor() protoreflect.EnumDescriptor {
+	return file_telaron_control_v1_control_proto_enumTypes[2].Descriptor()
+}
+
+func (RoutingDaemonState) Type() protoreflect.EnumType {
+	return &file_telaron_control_v1_control_proto_enumTypes[2]
+}
+
+func (x RoutingDaemonState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RoutingDaemonState.Descriptor instead.
+func (RoutingDaemonState) EnumDescriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{2}
+}
+
+type BgpPeerState int32
+
+const (
+	BgpPeerState_BGP_PEER_STATE_UNSPECIFIED BgpPeerState = 0
+	BgpPeerState_BGP_PEER_STATE_ESTABLISHED BgpPeerState = 1
+	BgpPeerState_BGP_PEER_STATE_CONNECT     BgpPeerState = 2
+	BgpPeerState_BGP_PEER_STATE_ACTIVE      BgpPeerState = 3
+	BgpPeerState_BGP_PEER_STATE_IDLE        BgpPeerState = 4
+	BgpPeerState_BGP_PEER_STATE_OPENSENT    BgpPeerState = 5
+	BgpPeerState_BGP_PEER_STATE_OPENCONFIRM BgpPeerState = 6
+	// The fabric document carries this tunnel but the daemons hold no
+	// neighbour for it: a divergence between control plane and appliance,
+	// not a session that is down.
+	BgpPeerState_BGP_PEER_STATE_NOT_CONFIGURED BgpPeerState = 7
+)
+
+// Enum value maps for BgpPeerState.
+var (
+	BgpPeerState_name = map[int32]string{
+		0: "BGP_PEER_STATE_UNSPECIFIED",
+		1: "BGP_PEER_STATE_ESTABLISHED",
+		2: "BGP_PEER_STATE_CONNECT",
+		3: "BGP_PEER_STATE_ACTIVE",
+		4: "BGP_PEER_STATE_IDLE",
+		5: "BGP_PEER_STATE_OPENSENT",
+		6: "BGP_PEER_STATE_OPENCONFIRM",
+		7: "BGP_PEER_STATE_NOT_CONFIGURED",
+	}
+	BgpPeerState_value = map[string]int32{
+		"BGP_PEER_STATE_UNSPECIFIED":    0,
+		"BGP_PEER_STATE_ESTABLISHED":    1,
+		"BGP_PEER_STATE_CONNECT":        2,
+		"BGP_PEER_STATE_ACTIVE":         3,
+		"BGP_PEER_STATE_IDLE":           4,
+		"BGP_PEER_STATE_OPENSENT":       5,
+		"BGP_PEER_STATE_OPENCONFIRM":    6,
+		"BGP_PEER_STATE_NOT_CONFIGURED": 7,
+	}
+)
+
+func (x BgpPeerState) Enum() *BgpPeerState {
+	p := new(BgpPeerState)
+	*p = x
+	return p
+}
+
+func (x BgpPeerState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BgpPeerState) Descriptor() protoreflect.EnumDescriptor {
+	return file_telaron_control_v1_control_proto_enumTypes[3].Descriptor()
+}
+
+func (BgpPeerState) Type() protoreflect.EnumType {
+	return &file_telaron_control_v1_control_proto_enumTypes[3]
+}
+
+func (x BgpPeerState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BgpPeerState.Descriptor instead.
+func (BgpPeerState) EnumDescriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{3}
+}
+
+type BfdPeerState int32
+
+const (
+	BfdPeerState_BFD_PEER_STATE_UNSPECIFIED BfdPeerState = 0
+	BfdPeerState_BFD_PEER_STATE_UP          BfdPeerState = 1
+	BfdPeerState_BFD_PEER_STATE_DOWN        BfdPeerState = 2
+	BfdPeerState_BFD_PEER_STATE_INIT        BfdPeerState = 3
+	BfdPeerState_BFD_PEER_STATE_ADMIN_DOWN  BfdPeerState = 4
+	// No BFD session for this peer, or one whose status the daemons did not
+	// report.
+	BfdPeerState_BFD_PEER_STATE_UNKNOWN BfdPeerState = 5
+)
+
+// Enum value maps for BfdPeerState.
+var (
+	BfdPeerState_name = map[int32]string{
+		0: "BFD_PEER_STATE_UNSPECIFIED",
+		1: "BFD_PEER_STATE_UP",
+		2: "BFD_PEER_STATE_DOWN",
+		3: "BFD_PEER_STATE_INIT",
+		4: "BFD_PEER_STATE_ADMIN_DOWN",
+		5: "BFD_PEER_STATE_UNKNOWN",
+	}
+	BfdPeerState_value = map[string]int32{
+		"BFD_PEER_STATE_UNSPECIFIED": 0,
+		"BFD_PEER_STATE_UP":          1,
+		"BFD_PEER_STATE_DOWN":        2,
+		"BFD_PEER_STATE_INIT":        3,
+		"BFD_PEER_STATE_ADMIN_DOWN":  4,
+		"BFD_PEER_STATE_UNKNOWN":     5,
+	}
+)
+
+func (x BfdPeerState) Enum() *BfdPeerState {
+	p := new(BfdPeerState)
+	*p = x
+	return p
+}
+
+func (x BfdPeerState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BfdPeerState) Descriptor() protoreflect.EnumDescriptor {
+	return file_telaron_control_v1_control_proto_enumTypes[4].Descriptor()
+}
+
+func (BfdPeerState) Type() protoreflect.EnumType {
+	return &file_telaron_control_v1_control_proto_enumTypes[4]
+}
+
+func (x BfdPeerState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use BfdPeerState.Descriptor instead.
+func (BfdPeerState) EnumDescriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{4}
+}
+
 type AckStatus int32
 
 const (
@@ -158,11 +342,11 @@ func (x AckStatus) String() string {
 }
 
 func (AckStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_telaron_control_v1_control_proto_enumTypes[2].Descriptor()
+	return file_telaron_control_v1_control_proto_enumTypes[5].Descriptor()
 }
 
 func (AckStatus) Type() protoreflect.EnumType {
-	return &file_telaron_control_v1_control_proto_enumTypes[2]
+	return &file_telaron_control_v1_control_proto_enumTypes[5]
 }
 
 func (x AckStatus) Number() protoreflect.EnumNumber {
@@ -171,7 +355,7 @@ func (x AckStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AckStatus.Descriptor instead.
 func (AckStatus) EnumDescriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{2}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{5}
 }
 
 type CommandType int32
@@ -213,11 +397,11 @@ func (x CommandType) String() string {
 }
 
 func (CommandType) Descriptor() protoreflect.EnumDescriptor {
-	return file_telaron_control_v1_control_proto_enumTypes[3].Descriptor()
+	return file_telaron_control_v1_control_proto_enumTypes[6].Descriptor()
 }
 
 func (CommandType) Type() protoreflect.EnumType {
-	return &file_telaron_control_v1_control_proto_enumTypes[3]
+	return &file_telaron_control_v1_control_proto_enumTypes[6]
 }
 
 func (x CommandType) Number() protoreflect.EnumNumber {
@@ -226,7 +410,7 @@ func (x CommandType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CommandType.Descriptor instead.
 func (CommandType) EnumDescriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{3}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{6}
 }
 
 type RegisterRequest struct {
@@ -865,6 +1049,7 @@ type Heartbeat struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SentAt        *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
 	Health        HealthStatus           `protobuf:"varint,2,opt,name=health,proto3,enum=telaron.control.v1.HealthStatus" json:"health,omitempty"`
+	Routing       *RoutingHealth         `protobuf:"bytes,3,opt,name=routing,proto3" json:"routing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -913,6 +1098,159 @@ func (x *Heartbeat) GetHealth() HealthStatus {
 	return HealthStatus_HEALTH_STATUS_UNSPECIFIED
 }
 
+func (x *Heartbeat) GetRouting() *RoutingHealth {
+	if x != nil {
+		return x.Routing
+	}
+	return nil
+}
+
+// RoutingHealth is the appliance's FRR view at heartbeat time: daemon
+// liveness plus one peer entry per fabric tunnel the gateway carries.
+type RoutingHealth struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Daemon RoutingDaemonState     `protobuf:"varint,1,opt,name=daemon,proto3,enum=telaron.control.v1.RoutingDaemonState" json:"daemon,omitempty"`
+	// One entry per fabric tunnel, including tunnels the daemons hold no
+	// neighbour for — those report NOT_CONFIGURED rather than being omitted,
+	// so a missing peer is a real absence and never a reporting gap.
+	Peers         []*RoutingPeer `protobuf:"bytes,2,rep,name=peers,proto3" json:"peers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoutingHealth) Reset() {
+	*x = RoutingHealth{}
+	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoutingHealth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoutingHealth) ProtoMessage() {}
+
+func (x *RoutingHealth) ProtoReflect() protoreflect.Message {
+	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoutingHealth.ProtoReflect.Descriptor instead.
+func (*RoutingHealth) Descriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RoutingHealth) GetDaemon() RoutingDaemonState {
+	if x != nil {
+		return x.Daemon
+	}
+	return RoutingDaemonState_ROUTING_DAEMON_STATE_UNSPECIFIED
+}
+
+func (x *RoutingHealth) GetPeers() []*RoutingPeer {
+	if x != nil {
+		return x.Peers
+	}
+	return nil
+}
+
+type RoutingPeer struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The neighbour's gateway id, taken from the fabric tunnel — FRR knows
+	// addresses and ASNs, not gateway identity.
+	PeerGatewayId string `protobuf:"bytes,1,opt,name=peer_gateway_id,json=peerGatewayId,proto3" json:"peer_gateway_id,omitempty"`
+	// The neighbour's address on the tunnel.
+	PeerAddress string       `protobuf:"bytes,2,opt,name=peer_address,json=peerAddress,proto3" json:"peer_address,omitempty"`
+	RemoteAsn   uint32       `protobuf:"varint,3,opt,name=remote_asn,json=remoteAsn,proto3" json:"remote_asn,omitempty"`
+	BgpState    BgpPeerState `protobuf:"varint,4,opt,name=bgp_state,json=bgpState,proto3,enum=telaron.control.v1.BgpPeerState" json:"bgp_state,omitempty"`
+	BfdState    BfdPeerState `protobuf:"varint,5,opt,name=bfd_state,json=bfdState,proto3,enum=telaron.control.v1.BfdPeerState" json:"bfd_state,omitempty"`
+	// When the peer last entered its current BGP state, or, when there is no
+	// BGP session, when its BFD session last transitioned.
+	Since         *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=since,proto3" json:"since,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoutingPeer) Reset() {
+	*x = RoutingPeer{}
+	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoutingPeer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoutingPeer) ProtoMessage() {}
+
+func (x *RoutingPeer) ProtoReflect() protoreflect.Message {
+	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoutingPeer.ProtoReflect.Descriptor instead.
+func (*RoutingPeer) Descriptor() ([]byte, []int) {
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RoutingPeer) GetPeerGatewayId() string {
+	if x != nil {
+		return x.PeerGatewayId
+	}
+	return ""
+}
+
+func (x *RoutingPeer) GetPeerAddress() string {
+	if x != nil {
+		return x.PeerAddress
+	}
+	return ""
+}
+
+func (x *RoutingPeer) GetRemoteAsn() uint32 {
+	if x != nil {
+		return x.RemoteAsn
+	}
+	return 0
+}
+
+func (x *RoutingPeer) GetBgpState() BgpPeerState {
+	if x != nil {
+		return x.BgpState
+	}
+	return BgpPeerState_BGP_PEER_STATE_UNSPECIFIED
+}
+
+func (x *RoutingPeer) GetBfdState() BfdPeerState {
+	if x != nil {
+		return x.BfdState
+	}
+	return BfdPeerState_BFD_PEER_STATE_UNSPECIFIED
+}
+
+func (x *RoutingPeer) GetSince() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Since
+	}
+	return nil
+}
+
 // ConfigPush carries the desired fabric/policy/peer state for this gateway.
 type ConfigPush struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -928,7 +1266,7 @@ type ConfigPush struct {
 
 func (x *ConfigPush) Reset() {
 	*x = ConfigPush{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -940,7 +1278,7 @@ func (x *ConfigPush) String() string {
 func (*ConfigPush) ProtoMessage() {}
 
 func (x *ConfigPush) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[9]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,7 +1291,7 @@ func (x *ConfigPush) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigPush.ProtoReflect.Descriptor instead.
 func (*ConfigPush) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{9}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ConfigPush) GetRevision() int64 {
@@ -989,7 +1327,7 @@ type ConfigAck struct {
 
 func (x *ConfigAck) Reset() {
 	*x = ConfigAck{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1001,7 +1339,7 @@ func (x *ConfigAck) String() string {
 func (*ConfigAck) ProtoMessage() {}
 
 func (x *ConfigAck) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[10]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1014,7 +1352,7 @@ func (x *ConfigAck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigAck.ProtoReflect.Descriptor instead.
 func (*ConfigAck) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{10}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ConfigAck) GetRevision() int64 {
@@ -1050,7 +1388,7 @@ type Command struct {
 
 func (x *Command) Reset() {
 	*x = Command{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1062,7 +1400,7 @@ func (x *Command) String() string {
 func (*Command) ProtoMessage() {}
 
 func (x *Command) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[11]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1075,7 +1413,7 @@ func (x *Command) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Command.ProtoReflect.Descriptor instead.
 func (*Command) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{11}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Command) GetCommandId() string {
@@ -1110,7 +1448,7 @@ type CommandResult struct {
 
 func (x *CommandResult) Reset() {
 	*x = CommandResult{}
-	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1460,7 @@ func (x *CommandResult) String() string {
 func (*CommandResult) ProtoMessage() {}
 
 func (x *CommandResult) ProtoReflect() protoreflect.Message {
-	mi := &file_telaron_control_v1_control_proto_msgTypes[12]
+	mi := &file_telaron_control_v1_control_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1473,7 @@ func (x *CommandResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandResult.ProtoReflect.Descriptor instead.
 func (*CommandResult) Descriptor() ([]byte, []int) {
-	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{12}
+	return file_telaron_control_v1_control_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CommandResult) GetCommandId() string {
@@ -1213,10 +1551,22 @@ const file_telaron_control_v1_control_proto_rawDesc = "" +
 	"\x06source\x18\x03 \x01(\tR\x06source\"\x80\x01\n" +
 	"\bHelloAck\x126\n" +
 	"\x17current_config_revision\x18\x01 \x01(\x03R\x15currentConfigRevision\x12<\n" +
-	"\x1aheartbeat_interval_seconds\x18\x02 \x01(\rR\x18heartbeatIntervalSeconds\"z\n" +
+	"\x1aheartbeat_interval_seconds\x18\x02 \x01(\rR\x18heartbeatIntervalSeconds\"\xb7\x01\n" +
 	"\tHeartbeat\x123\n" +
 	"\asent_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x06sentAt\x128\n" +
-	"\x06health\x18\x02 \x01(\x0e2 .telaron.control.v1.HealthStatusR\x06health\"i\n" +
+	"\x06health\x18\x02 \x01(\x0e2 .telaron.control.v1.HealthStatusR\x06health\x12;\n" +
+	"\arouting\x18\x03 \x01(\v2!.telaron.control.v1.RoutingHealthR\arouting\"\x86\x01\n" +
+	"\rRoutingHealth\x12>\n" +
+	"\x06daemon\x18\x01 \x01(\x0e2&.telaron.control.v1.RoutingDaemonStateR\x06daemon\x125\n" +
+	"\x05peers\x18\x02 \x03(\v2\x1f.telaron.control.v1.RoutingPeerR\x05peers\"\xa7\x02\n" +
+	"\vRoutingPeer\x12&\n" +
+	"\x0fpeer_gateway_id\x18\x01 \x01(\tR\rpeerGatewayId\x12!\n" +
+	"\fpeer_address\x18\x02 \x01(\tR\vpeerAddress\x12\x1d\n" +
+	"\n" +
+	"remote_asn\x18\x03 \x01(\rR\tremoteAsn\x12=\n" +
+	"\tbgp_state\x18\x04 \x01(\x0e2 .telaron.control.v1.BgpPeerStateR\bbgpState\x12=\n" +
+	"\tbfd_state\x18\x05 \x01(\x0e2 .telaron.control.v1.BfdPeerStateR\bbfdState\x120\n" +
+	"\x05since\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x05since\"i\n" +
 	"\n" +
 	"ConfigPush\x12\x1a\n" +
 	"\brevision\x18\x01 \x01(\x03R\brevision\x12\x16\n" +
@@ -1247,7 +1597,28 @@ const file_telaron_control_v1_control_proto_rawDesc = "" +
 	"\x19HEALTH_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15HEALTH_STATUS_HEALTHY\x10\x01\x12\x1a\n" +
 	"\x16HEALTH_STATUS_DEGRADED\x10\x02\x12\x1b\n" +
-	"\x17HEALTH_STATUS_UNHEALTHY\x10\x03*V\n" +
+	"\x17HEALTH_STATUS_UNHEALTHY\x10\x03*\x9d\x01\n" +
+	"\x12RoutingDaemonState\x12$\n" +
+	" ROUTING_DAEMON_STATE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aROUTING_DAEMON_STATE_READY\x10\x01\x12!\n" +
+	"\x1dROUTING_DAEMON_STATE_STARTING\x10\x02\x12\x1e\n" +
+	"\x1aROUTING_DAEMON_STATE_ERROR\x10\x03*\xfe\x01\n" +
+	"\fBgpPeerState\x12\x1e\n" +
+	"\x1aBGP_PEER_STATE_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aBGP_PEER_STATE_ESTABLISHED\x10\x01\x12\x1a\n" +
+	"\x16BGP_PEER_STATE_CONNECT\x10\x02\x12\x19\n" +
+	"\x15BGP_PEER_STATE_ACTIVE\x10\x03\x12\x17\n" +
+	"\x13BGP_PEER_STATE_IDLE\x10\x04\x12\x1b\n" +
+	"\x17BGP_PEER_STATE_OPENSENT\x10\x05\x12\x1e\n" +
+	"\x1aBGP_PEER_STATE_OPENCONFIRM\x10\x06\x12!\n" +
+	"\x1dBGP_PEER_STATE_NOT_CONFIGURED\x10\a*\xb2\x01\n" +
+	"\fBfdPeerState\x12\x1e\n" +
+	"\x1aBFD_PEER_STATE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11BFD_PEER_STATE_UP\x10\x01\x12\x17\n" +
+	"\x13BFD_PEER_STATE_DOWN\x10\x02\x12\x17\n" +
+	"\x13BFD_PEER_STATE_INIT\x10\x03\x12\x1d\n" +
+	"\x19BFD_PEER_STATE_ADMIN_DOWN\x10\x04\x12\x1a\n" +
+	"\x16BFD_PEER_STATE_UNKNOWN\x10\x05*V\n" +
 	"\tAckStatus\x12\x1a\n" +
 	"\x16ACK_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12ACK_STATUS_APPLIED\x10\x01\x12\x15\n" +
@@ -1275,59 +1646,70 @@ func file_telaron_control_v1_control_proto_rawDescGZIP() []byte {
 	return file_telaron_control_v1_control_proto_rawDescData
 }
 
-var file_telaron_control_v1_control_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_telaron_control_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_telaron_control_v1_control_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
+var file_telaron_control_v1_control_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_telaron_control_v1_control_proto_goTypes = []any{
 	(AddressScope)(0),             // 0: telaron.control.v1.AddressScope
 	(HealthStatus)(0),             // 1: telaron.control.v1.HealthStatus
-	(AckStatus)(0),                // 2: telaron.control.v1.AckStatus
-	(CommandType)(0),              // 3: telaron.control.v1.CommandType
-	(*RegisterRequest)(nil),       // 4: telaron.control.v1.RegisterRequest
-	(*RegisterResponse)(nil),      // 5: telaron.control.v1.RegisterResponse
-	(*ConnectRequest)(nil),        // 6: telaron.control.v1.ConnectRequest
-	(*ConnectResponse)(nil),       // 7: telaron.control.v1.ConnectResponse
-	(*Hello)(nil),                 // 8: telaron.control.v1.Hello
-	(*WireGuardIdentity)(nil),     // 9: telaron.control.v1.WireGuardIdentity
-	(*ObservedAddress)(nil),       // 10: telaron.control.v1.ObservedAddress
-	(*HelloAck)(nil),              // 11: telaron.control.v1.HelloAck
-	(*Heartbeat)(nil),             // 12: telaron.control.v1.Heartbeat
-	(*ConfigPush)(nil),            // 13: telaron.control.v1.ConfigPush
-	(*ConfigAck)(nil),             // 14: telaron.control.v1.ConfigAck
-	(*Command)(nil),               // 15: telaron.control.v1.Command
-	(*CommandResult)(nil),         // 16: telaron.control.v1.CommandResult
-	nil,                           // 17: telaron.control.v1.RegisterRequest.LabelsEntry
-	nil,                           // 18: telaron.control.v1.Command.ParamsEntry
-	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
+	(RoutingDaemonState)(0),       // 2: telaron.control.v1.RoutingDaemonState
+	(BgpPeerState)(0),             // 3: telaron.control.v1.BgpPeerState
+	(BfdPeerState)(0),             // 4: telaron.control.v1.BfdPeerState
+	(AckStatus)(0),                // 5: telaron.control.v1.AckStatus
+	(CommandType)(0),              // 6: telaron.control.v1.CommandType
+	(*RegisterRequest)(nil),       // 7: telaron.control.v1.RegisterRequest
+	(*RegisterResponse)(nil),      // 8: telaron.control.v1.RegisterResponse
+	(*ConnectRequest)(nil),        // 9: telaron.control.v1.ConnectRequest
+	(*ConnectResponse)(nil),       // 10: telaron.control.v1.ConnectResponse
+	(*Hello)(nil),                 // 11: telaron.control.v1.Hello
+	(*WireGuardIdentity)(nil),     // 12: telaron.control.v1.WireGuardIdentity
+	(*ObservedAddress)(nil),       // 13: telaron.control.v1.ObservedAddress
+	(*HelloAck)(nil),              // 14: telaron.control.v1.HelloAck
+	(*Heartbeat)(nil),             // 15: telaron.control.v1.Heartbeat
+	(*RoutingHealth)(nil),         // 16: telaron.control.v1.RoutingHealth
+	(*RoutingPeer)(nil),           // 17: telaron.control.v1.RoutingPeer
+	(*ConfigPush)(nil),            // 18: telaron.control.v1.ConfigPush
+	(*ConfigAck)(nil),             // 19: telaron.control.v1.ConfigAck
+	(*Command)(nil),               // 20: telaron.control.v1.Command
+	(*CommandResult)(nil),         // 21: telaron.control.v1.CommandResult
+	nil,                           // 22: telaron.control.v1.RegisterRequest.LabelsEntry
+	nil,                           // 23: telaron.control.v1.Command.ParamsEntry
+	(*timestamppb.Timestamp)(nil), // 24: google.protobuf.Timestamp
 }
 var file_telaron_control_v1_control_proto_depIdxs = []int32{
-	17, // 0: telaron.control.v1.RegisterRequest.labels:type_name -> telaron.control.v1.RegisterRequest.LabelsEntry
-	19, // 1: telaron.control.v1.RegisterResponse.certificate_expires_at:type_name -> google.protobuf.Timestamp
-	8,  // 2: telaron.control.v1.ConnectRequest.hello:type_name -> telaron.control.v1.Hello
-	12, // 3: telaron.control.v1.ConnectRequest.heartbeat:type_name -> telaron.control.v1.Heartbeat
-	14, // 4: telaron.control.v1.ConnectRequest.config_ack:type_name -> telaron.control.v1.ConfigAck
-	16, // 5: telaron.control.v1.ConnectRequest.command_result:type_name -> telaron.control.v1.CommandResult
-	11, // 6: telaron.control.v1.ConnectResponse.hello_ack:type_name -> telaron.control.v1.HelloAck
-	13, // 7: telaron.control.v1.ConnectResponse.config_push:type_name -> telaron.control.v1.ConfigPush
-	15, // 8: telaron.control.v1.ConnectResponse.command:type_name -> telaron.control.v1.Command
-	9,  // 9: telaron.control.v1.Hello.fabric:type_name -> telaron.control.v1.WireGuardIdentity
-	9,  // 10: telaron.control.v1.Hello.mesh:type_name -> telaron.control.v1.WireGuardIdentity
-	10, // 11: telaron.control.v1.Hello.addresses:type_name -> telaron.control.v1.ObservedAddress
+	22, // 0: telaron.control.v1.RegisterRequest.labels:type_name -> telaron.control.v1.RegisterRequest.LabelsEntry
+	24, // 1: telaron.control.v1.RegisterResponse.certificate_expires_at:type_name -> google.protobuf.Timestamp
+	11, // 2: telaron.control.v1.ConnectRequest.hello:type_name -> telaron.control.v1.Hello
+	15, // 3: telaron.control.v1.ConnectRequest.heartbeat:type_name -> telaron.control.v1.Heartbeat
+	19, // 4: telaron.control.v1.ConnectRequest.config_ack:type_name -> telaron.control.v1.ConfigAck
+	21, // 5: telaron.control.v1.ConnectRequest.command_result:type_name -> telaron.control.v1.CommandResult
+	14, // 6: telaron.control.v1.ConnectResponse.hello_ack:type_name -> telaron.control.v1.HelloAck
+	18, // 7: telaron.control.v1.ConnectResponse.config_push:type_name -> telaron.control.v1.ConfigPush
+	20, // 8: telaron.control.v1.ConnectResponse.command:type_name -> telaron.control.v1.Command
+	12, // 9: telaron.control.v1.Hello.fabric:type_name -> telaron.control.v1.WireGuardIdentity
+	12, // 10: telaron.control.v1.Hello.mesh:type_name -> telaron.control.v1.WireGuardIdentity
+	13, // 11: telaron.control.v1.Hello.addresses:type_name -> telaron.control.v1.ObservedAddress
 	0,  // 12: telaron.control.v1.ObservedAddress.scope:type_name -> telaron.control.v1.AddressScope
-	19, // 13: telaron.control.v1.Heartbeat.sent_at:type_name -> google.protobuf.Timestamp
+	24, // 13: telaron.control.v1.Heartbeat.sent_at:type_name -> google.protobuf.Timestamp
 	1,  // 14: telaron.control.v1.Heartbeat.health:type_name -> telaron.control.v1.HealthStatus
-	2,  // 15: telaron.control.v1.ConfigAck.status:type_name -> telaron.control.v1.AckStatus
-	3,  // 16: telaron.control.v1.Command.type:type_name -> telaron.control.v1.CommandType
-	18, // 17: telaron.control.v1.Command.params:type_name -> telaron.control.v1.Command.ParamsEntry
-	2,  // 18: telaron.control.v1.CommandResult.status:type_name -> telaron.control.v1.AckStatus
-	4,  // 19: telaron.control.v1.ControlService.Register:input_type -> telaron.control.v1.RegisterRequest
-	6,  // 20: telaron.control.v1.ControlService.Connect:input_type -> telaron.control.v1.ConnectRequest
-	5,  // 21: telaron.control.v1.ControlService.Register:output_type -> telaron.control.v1.RegisterResponse
-	7,  // 22: telaron.control.v1.ControlService.Connect:output_type -> telaron.control.v1.ConnectResponse
-	21, // [21:23] is the sub-list for method output_type
-	19, // [19:21] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	16, // 15: telaron.control.v1.Heartbeat.routing:type_name -> telaron.control.v1.RoutingHealth
+	2,  // 16: telaron.control.v1.RoutingHealth.daemon:type_name -> telaron.control.v1.RoutingDaemonState
+	17, // 17: telaron.control.v1.RoutingHealth.peers:type_name -> telaron.control.v1.RoutingPeer
+	3,  // 18: telaron.control.v1.RoutingPeer.bgp_state:type_name -> telaron.control.v1.BgpPeerState
+	4,  // 19: telaron.control.v1.RoutingPeer.bfd_state:type_name -> telaron.control.v1.BfdPeerState
+	24, // 20: telaron.control.v1.RoutingPeer.since:type_name -> google.protobuf.Timestamp
+	5,  // 21: telaron.control.v1.ConfigAck.status:type_name -> telaron.control.v1.AckStatus
+	6,  // 22: telaron.control.v1.Command.type:type_name -> telaron.control.v1.CommandType
+	23, // 23: telaron.control.v1.Command.params:type_name -> telaron.control.v1.Command.ParamsEntry
+	5,  // 24: telaron.control.v1.CommandResult.status:type_name -> telaron.control.v1.AckStatus
+	7,  // 25: telaron.control.v1.ControlService.Register:input_type -> telaron.control.v1.RegisterRequest
+	9,  // 26: telaron.control.v1.ControlService.Connect:input_type -> telaron.control.v1.ConnectRequest
+	8,  // 27: telaron.control.v1.ControlService.Register:output_type -> telaron.control.v1.RegisterResponse
+	10, // 28: telaron.control.v1.ControlService.Connect:output_type -> telaron.control.v1.ConnectResponse
+	27, // [27:29] is the sub-list for method output_type
+	25, // [25:27] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_telaron_control_v1_control_proto_init() }
@@ -1351,8 +1733,8 @@ func file_telaron_control_v1_control_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_telaron_control_v1_control_proto_rawDesc), len(file_telaron_control_v1_control_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   15,
+			NumEnums:      7,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
