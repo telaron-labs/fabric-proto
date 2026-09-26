@@ -109,6 +109,7 @@ message HelloAck {
 message Heartbeat {
   google.protobuf.Timestamp sent_at = 1;
   HealthStatus health = 2;
+  RoutingHealth routing = 3;
 }
 
 enum HealthStatus {
@@ -116,6 +117,67 @@ enum HealthStatus {
   HEALTH_STATUS_HEALTHY = 1;
   HEALTH_STATUS_DEGRADED = 2;
   HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// RoutingHealth is the appliance's FRR view at heartbeat time: daemon
+// liveness plus one peer entry per fabric tunnel the gateway carries.
+message RoutingHealth {
+  RoutingDaemonState daemon = 1;
+  // One entry per fabric tunnel, including tunnels the daemons hold no
+  // neighbour for — those report NOT_CONFIGURED rather than being omitted,
+  // so a missing peer is a real absence and never a reporting gap.
+  repeated RoutingPeer peers = 2;
+}
+
+// RoutingDaemonState is liveness of the FRR daemons as a whole, independent
+// of any neighbour: peer states are only trustworthy when it is READY.
+enum RoutingDaemonState {
+  ROUTING_DAEMON_STATE_UNSPECIFIED = 0;
+  // The daemons answered a probe.
+  ROUTING_DAEMON_STATE_READY = 1;
+  // Not reachable yet; expected between boot and the first config apply.
+  ROUTING_DAEMON_STATE_STARTING = 2;
+  // Were up and no longer answer, or the last start attempt failed.
+  ROUTING_DAEMON_STATE_ERROR = 3;
+}
+
+message RoutingPeer {
+  // The neighbour's gateway id, taken from the fabric tunnel — FRR knows
+  // addresses and ASNs, not gateway identity.
+  string peer_gateway_id = 1;
+  // The neighbour's address on the tunnel.
+  string peer_address = 2;
+  uint32 remote_asn = 3;
+  BgpPeerState bgp_state = 4;
+  BfdPeerState bfd_state = 5;
+  // When the peer last entered its current BGP state, or, when there is no
+  // BGP session, when its BFD session last transitioned.
+  google.protobuf.Timestamp since = 6;
+}
+
+enum BgpPeerState {
+  BGP_PEER_STATE_UNSPECIFIED = 0;
+  BGP_PEER_STATE_ESTABLISHED = 1;
+  BGP_PEER_STATE_CONNECT = 2;
+  BGP_PEER_STATE_ACTIVE = 3;
+  BGP_PEER_STATE_IDLE = 4;
+  BGP_PEER_STATE_OPENSENT = 5;
+  BGP_PEER_STATE_OPENCONFIRM = 6;
+  // The fabric document carries this tunnel but the daemons hold no
+  // neighbour for it: a divergence between control plane and appliance,
+  // not a session that is down.
+  BGP_PEER_STATE_NOT_CONFIGURED = 7;
+}
+
+enum BfdPeerState {
+  BFD_PEER_STATE_UNSPECIFIED = 0;
+  BFD_PEER_STATE_UP = 1;
+  BFD_PEER_STATE_DOWN = 2;
+  BFD_PEER_STATE_INIT = 3;
+  BFD_PEER_STATE_ADMIN_DOWN = 4;
+  // No BFD session for this peer, or one whose status the daemons did not
+  // report.
+  BFD_PEER_STATE_UNKNOWN = 5;
 }
 
 // ConfigPush carries the desired fabric/policy/peer state for this gateway.
