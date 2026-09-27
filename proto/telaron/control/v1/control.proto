@@ -18,6 +18,29 @@ service ControlService {
   // the control plane replies HelloAck with the current config revision so a
   // reconnecting gateway can resume without a full re-push.
   rpc Connect(stream ConnectRequest) returns (stream ConnectResponse);
+
+  // Renew re-certifies an enrolled gateway before its device certificate
+  // expires. Authenticated by device-proof like Connect; no enrolment token.
+  // Only the gateway's current certificate may mint, and only with a new key.
+  // A retry presenting the previous certificate with the already-certified
+  // key is answered with the current certificate, so a lost response heals.
+  rpc Renew(RenewRequest) returns (RenewResponse);
+}
+
+message RenewRequest {
+  // PKCS#10 CSR, PEM. Only the public key is trusted; the subject is taken
+  // from the device-proof certificate.
+  bytes csr_pem = 1;
+  // Gateway software version (semver).
+  string version = 2;
+}
+
+message RenewResponse {
+  // Signed device certificate, PEM-encoded.
+  bytes certificate_pem = 1;
+  // CA bundle for validating the control-plane server certificate.
+  bytes ca_bundle_pem = 2;
+  google.protobuf.Timestamp certificate_expires_at = 3;
 }
 
 message RegisterRequest {

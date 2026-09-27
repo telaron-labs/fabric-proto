@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ControlService_Register_FullMethodName = "/telaron.control.v1.ControlService/Register"
 	ControlService_Connect_FullMethodName  = "/telaron.control.v1.ControlService/Connect"
+	ControlService_Renew_FullMethodName    = "/telaron.control.v1.ControlService/Renew"
 )
 
 // ControlServiceClient is the client API for ControlService service.
@@ -40,6 +41,12 @@ type ControlServiceClient interface {
 	// the control plane replies HelloAck with the current config revision so a
 	// reconnecting gateway can resume without a full re-push.
 	Connect(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ConnectRequest, ConnectResponse], error)
+	// Renew re-certifies an enrolled gateway before its device certificate
+	// expires. Authenticated by device-proof like Connect; no enrolment token.
+	// Only the gateway's current certificate may mint, and only with a new key.
+	// A retry presenting the previous certificate with the already-certified
+	// key is answered with the current certificate, so a lost response heals.
+	Renew(ctx context.Context, in *RenewRequest, opts ...grpc.CallOption) (*RenewResponse, error)
 }
 
 type controlServiceClient struct {
@@ -73,6 +80,16 @@ func (c *controlServiceClient) Connect(ctx context.Context, opts ...grpc.CallOpt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ControlService_ConnectClient = grpc.BidiStreamingClient[ConnectRequest, ConnectResponse]
 
+func (c *controlServiceClient) Renew(ctx context.Context, in *RenewRequest, opts ...grpc.CallOption) (*RenewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RenewResponse)
+	err := c.cc.Invoke(ctx, ControlService_Renew_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ControlServiceServer is the server API for ControlService service.
 // All implementations must embed UnimplementedControlServiceServer
 // for forward compatibility.
@@ -90,6 +107,12 @@ type ControlServiceServer interface {
 	// the control plane replies HelloAck with the current config revision so a
 	// reconnecting gateway can resume without a full re-push.
 	Connect(grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]) error
+	// Renew re-certifies an enrolled gateway before its device certificate
+	// expires. Authenticated by device-proof like Connect; no enrolment token.
+	// Only the gateway's current certificate may mint, and only with a new key.
+	// A retry presenting the previous certificate with the already-certified
+	// key is answered with the current certificate, so a lost response heals.
+	Renew(context.Context, *RenewRequest) (*RenewResponse, error)
 	mustEmbedUnimplementedControlServiceServer()
 }
 
@@ -105,6 +128,9 @@ func (UnimplementedControlServiceServer) Register(context.Context, *RegisterRequ
 }
 func (UnimplementedControlServiceServer) Connect(grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]) error {
 	return status.Error(codes.Unimplemented, "method Connect not implemented")
+}
+func (UnimplementedControlServiceServer) Renew(context.Context, *RenewRequest) (*RenewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Renew not implemented")
 }
 func (UnimplementedControlServiceServer) mustEmbedUnimplementedControlServiceServer() {}
 func (UnimplementedControlServiceServer) testEmbeddedByValue()                        {}
@@ -152,6 +178,24 @@ func _ControlService_Connect_Handler(srv interface{}, stream grpc.ServerStream) 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ControlService_ConnectServer = grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]
 
+func _ControlService_Renew_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ControlServiceServer).Renew(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ControlService_Renew_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ControlServiceServer).Renew(ctx, req.(*RenewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ControlService_ServiceDesc is the grpc.ServiceDesc for ControlService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +206,10 @@ var ControlService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _ControlService_Register_Handler,
+		},
+		{
+			MethodName: "Renew",
+			Handler:    _ControlService_Renew_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
